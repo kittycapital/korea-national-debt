@@ -16,9 +16,9 @@ body{background:#0a0a0a;color:#e0e0e0;font-family:'Noto Sans KR',sans-serif;line
 .container{max-width:1200px;margin:0 auto;padding:24px 16px 40px}
 
 /* Header */
-.header{margin-bottom:28px;border-bottom:1px solid #222;padding-bottom:20px}
+.header{margin-bottom:28px;border-bottom:1px solid #222;padding-bottom:20px;text-align:center}
 .header h1{font-size:22px;font-weight:700;color:#fff;margin-bottom:6px;letter-spacing:-0.5px}
-.header .sub{font-size:13px;color:#666;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.header .sub{font-size:13px;color:#666;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center}
 .header .sub .accent{color:#00d4aa;font-family:'JetBrains Mono',monospace;font-size:12px}
 .badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid}
 .badge-blue{background:rgba(0,122,255,0.1);color:#007AFF;border-color:rgba(0,122,255,0.25)}
@@ -36,7 +36,7 @@ body{background:#0a0a0a;color:#e0e0e0;font-family:'Noto Sans KR',sans-serif;line
 /* Stat Row */
 .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
 .stat-card{background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px;position:relative;overflow:hidden}
-.stat-card .stat-title{font-size:11px;color:#666;margin-bottom:10px;font-weight:500}
+.stat-card .stat-title{font-size:11px;color:#666;margin-bottom:10px;font-weight:500;text-align:center}
 .stat-card .stat-pair{display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
 .stat-val{text-align:center;flex:1}
 .stat-val .num{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1.2}
@@ -45,8 +45,8 @@ body{background:#0a0a0a;color:#e0e0e0;font-family:'Noto Sans KR',sans-serif;line
 
 /* Chart Section */
 .chart-section{background:#111;border:1px solid #1a1a1a;border-radius:12px;padding:20px 16px;margin-bottom:20px}
-.chart-section h2{font-size:15px;font-weight:600;color:#fff;margin-bottom:4px}
-.chart-section .chart-sub{font-size:11px;color:#555;margin-bottom:16px}
+.chart-section h2{font-size:15px;font-weight:600;color:#fff;margin-bottom:4px;text-align:center}
+.chart-section .chart-sub{font-size:11px;color:#555;margin-bottom:16px;text-align:center}
 .chart-wrap{position:relative;width:100%;height:380px}
 
 /* Individual President Cards */
@@ -64,7 +64,7 @@ body{background:#0a0a0a;color:#e0e0e0;font-family:'Noto Sans KR',sans-serif;line
 .pres-metric .ml{font-size:9px;color:#666}
 
 /* Context Banner */
-.context-banner{background:rgba(255,165,0,0.05);border:1px solid rgba(255,165,0,0.15);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:12px;color:#999;line-height:1.6}
+.context-banner{background:rgba(255,165,0,0.05);border:1px solid rgba(255,165,0,0.15);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:12px;color:#999;line-height:1.6;text-align:center}
 .context-banner strong{color:#ffa500}
 
 /* Disclaimer */
@@ -143,7 +143,7 @@ body{background:#0a0a0a;color:#e0e0e0;font-family:'Noto Sans KR',sans-serif;line
   </div>
 
   <!-- Individual President Cards -->
-  <h2 style="font-size:15px;font-weight:600;color:#fff;margin-bottom:14px;">📋 대통령별 상세 카드</h2>
+  <h2 style="font-size:15px;font-weight:600;color:#fff;margin-bottom:14px;text-align:center;">📋 대통령별 상세 카드</h2>
   <div class="pres-grid" id="presGrid"></div>
 
   <!-- Disclaimer -->
@@ -622,25 +622,26 @@ function renderPresCards() {
 // Share Bar
 // ========================================
 function initShareBar() {
-  const url = encodeURIComponent(window.location.href);
+  const SHARE_URL = 'https://herdvibe.com/132';
+  const url = encodeURIComponent(SHARE_URL);
   const title = encodeURIComponent('정당별 국가채무 비교 대시보드 | HerdVibe');
   document.getElementById('shareX').href = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
   document.getElementById('shareTelegram').href = `https://t.me/share/url?url=${url}&text=${title}`;
   document.getElementById('shareKakao').addEventListener('click', e => {
     e.preventDefault();
     if(window.Kakao&&Kakao.isInitialized()){
-      Kakao.Share.sendDefault({objectType:'feed',content:{title:'정당별 국가채무 비교',description:'민주당 vs 국힘 계열 대통령 국가채무 비교',imageUrl:'',link:{mobileWebUrl:window.location.href,webUrl:window.location.href}}});
+      Kakao.Share.sendDefault({objectType:'feed',content:{title:'정당별 국가채무 비교',description:'민주당 vs 국힘 계열 대통령 국가채무 비교',imageUrl:'',link:{mobileWebUrl:SHARE_URL,webUrl:SHARE_URL}}});
     } else {
       window.open(`https://story.kakao.com/share?url=${url}`,'_blank');
     }
   });
   document.getElementById('shareCopy').addEventListener('click', e => {
     e.preventDefault();
-    navigator.clipboard.writeText(window.location.href).then(()=>{
+    navigator.clipboard.writeText(SHARE_URL).then(()=>{
       const btn=e.currentTarget;btn.style.borderColor='#00d4aa';btn.style.color='#00d4aa';
       setTimeout(()=>{btn.style.borderColor='#333';btn.style.color='#888'},1500);
     }).catch(()=>{
-      const ta=document.createElement('textarea');ta.value=window.location.href;
+      const ta=document.createElement('textarea');ta.value=SHARE_URL;
       document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
     });
   });
