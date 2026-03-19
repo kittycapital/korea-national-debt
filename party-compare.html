@@ -158,13 +158,13 @@ body{background:#0a0a0a;color:#e0e0e0;font-family:'Noto Sans KR',sans-serif;line
 
   <!-- Share Bar -->
   <div class="share-bar">
-    <a class="share-btn" id="shareX" title="X(트위터)" target="_blank">
+    <a class="share-btn" id="shareX" title="X(트위터)">
       <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
     </a>
     <a class="share-btn" id="shareKakao" title="카카오톡" href="#">
       <svg viewBox="0 0 24 24"><path d="M12 3C6.477 3 2 6.463 2 10.691c0 2.717 1.81 5.104 4.534 6.444l-.924 3.42c-.082.303.254.55.52.384l4.05-2.593c.592.082 1.2.126 1.82.126 5.523 0 10-3.463 10-7.691S17.523 3 12 3z"/></svg>
     </a>
-    <a class="share-btn" id="shareTelegram" title="텔레그램" target="_blank">
+    <a class="share-btn" id="shareTelegram" title="텔레그램">
       <svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.492-1.302.48-.428-.013-1.252-.242-1.865-.44-.751-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
     </a>
     <a class="share-btn" id="shareCopy" title="링크 복사" href="#">
@@ -625,25 +625,49 @@ function initShareBar() {
   const SHARE_URL = 'https://herdvibe.com/132';
   const url = encodeURIComponent(SHARE_URL);
   const title = encodeURIComponent('정당별 국가채무 비교 대시보드 | HerdVibe');
-  document.getElementById('shareX').href = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
-  document.getElementById('shareTelegram').href = `https://t.me/share/url?url=${url}&text=${title}`;
+  const topWin = window.top || window.parent || window;
+
+  document.getElementById('shareX').addEventListener('click', e => {
+    e.preventDefault();
+    topWin.open(`https://twitter.com/intent/tweet?url=${url}&text=${title}`, '_blank');
+  });
+  document.getElementById('shareTelegram').addEventListener('click', e => {
+    e.preventDefault();
+    topWin.open(`https://t.me/share/url?url=${url}&text=${title}`, '_blank');
+  });
   document.getElementById('shareKakao').addEventListener('click', e => {
     e.preventDefault();
     if(window.Kakao&&Kakao.isInitialized()){
       Kakao.Share.sendDefault({objectType:'feed',content:{title:'정당별 국가채무 비교',description:'민주당 vs 국힘 계열 대통령 국가채무 비교',imageUrl:'',link:{mobileWebUrl:SHARE_URL,webUrl:SHARE_URL}}});
     } else {
-      window.open(`https://story.kakao.com/share?url=${url}`,'_blank');
+      topWin.open(`https://story.kakao.com/share?url=${url}`,'_blank');
     }
   });
   document.getElementById('shareCopy').addEventListener('click', e => {
     e.preventDefault();
-    navigator.clipboard.writeText(SHARE_URL).then(()=>{
-      const btn=e.currentTarget;btn.style.borderColor='#00d4aa';btn.style.color='#00d4aa';
+    const btn = e.currentTarget;
+    const onSuccess = () => {
+      btn.style.borderColor='#00d4aa';btn.style.color='#00d4aa';
       setTimeout(()=>{btn.style.borderColor='#333';btn.style.color='#888'},1500);
-    }).catch(()=>{
-      const ta=document.createElement('textarea');ta.value=SHARE_URL;
-      document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
-    });
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(SHARE_URL).then(onSuccess).catch(fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+    function fallbackCopy() {
+      try {
+        const ta=document.createElement('textarea');
+        ta.value=SHARE_URL;
+        ta.style.cssText='position:fixed;left:-9999px;top:-9999px;opacity:0';
+        document.body.appendChild(ta);ta.focus();ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        onSuccess();
+      } catch(err) {
+        prompt('아래 링크를 복사하세요:', SHARE_URL);
+      }
+    }
   });
 }
 
