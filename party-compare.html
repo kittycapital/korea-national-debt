@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>정당별 국가채무 비교 | HerdVibe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#e0e0e0;font-family:'Noto Sans KR',sans-serif;line-height:1.6;min-height:100vh}
+.mono{font-family:'JetBrains Mono',monospace}
+.container{max-width:1200px;margin:0 auto;padding:24px 16px 40px}
+
+/* Header */
+.header{margin-bottom:28px;border-bottom:1px solid #222;padding-bottom:20px}
+.header h1{font-size:22px;font-weight:700;color:#fff;margin-bottom:6px;letter-spacing:-0.5px}
+.header .sub{font-size:13px;color:#666;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.header .sub .accent{color:#00d4aa;font-family:'JetBrains Mono',monospace;font-size:12px}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid}
+.badge-blue{background:rgba(0,122,255,0.1);color:#007AFF;border-color:rgba(0,122,255,0.25)}
+.badge-red{background:rgba(231,76,60,0.1);color:#E74C3C;border-color:rgba(231,76,60,0.25)}
+
+/* Party Headers */
+.party-vs{display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:28px;flex-wrap:wrap}
+.party-block{text-align:center;padding:20px 28px;border-radius:14px;border:1px solid #1a1a1a;background:#111;min-width:200px;flex:1;max-width:400px}
+.party-block h3{font-size:16px;font-weight:700;margin-bottom:4px}
+.party-block .members{font-size:12px;color:#888;margin-bottom:10px}
+.party-block .big-num{font-size:32px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1.2}
+.party-block .big-label{font-size:11px;color:#666;margin-top:2px}
+.vs-circle{width:44px;height:44px;border-radius:50%;background:#1a1a1a;border:1px solid #333;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#555;flex-shrink:0}
+
+/* Stat Row */
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+.stat-card{background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px;position:relative;overflow:hidden}
+.stat-card .stat-title{font-size:11px;color:#666;margin-bottom:10px;font-weight:500}
+.stat-card .stat-pair{display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
+.stat-val{text-align:center;flex:1}
+.stat-val .num{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1.2}
+.stat-val .lbl{font-size:10px;color:#555;margin-top:2px}
+.stat-divider{width:1px;background:#222;align-self:stretch;margin:0 4px}
+
+/* Chart Section */
+.chart-section{background:#111;border:1px solid #1a1a1a;border-radius:12px;padding:20px 16px;margin-bottom:20px}
+.chart-section h2{font-size:15px;font-weight:600;color:#fff;margin-bottom:4px}
+.chart-section .chart-sub{font-size:11px;color:#555;margin-bottom:16px}
+.chart-wrap{position:relative;width:100%;height:380px}
+
+/* Individual President Cards */
+.pres-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:20px}
+.pres-card{background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:14px 16px;transition:border-color 0.2s}
+.pres-card:hover{border-color:#333}
+.pres-card .pres-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pres-card .pres-name{font-size:15px;font-weight:700;color:#fff}
+.pres-card .pres-term{font-size:11px;color:#555;font-family:'JetBrains Mono',monospace}
+.pres-card .pres-party{font-size:10px;font-weight:600;padding:1px 6px;border-radius:3px}
+.pres-card .context-tag{font-size:10px;color:#888;background:#1a1a1a;padding:2px 6px;border-radius:3px;display:inline-block;margin-top:2px}
+.pres-metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
+.pres-metric{text-align:center}
+.pres-metric .mv{font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.pres-metric .ml{font-size:9px;color:#666}
+
+/* Context Banner */
+.context-banner{background:rgba(255,165,0,0.05);border:1px solid rgba(255,165,0,0.15);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:12px;color:#999;line-height:1.6}
+.context-banner strong{color:#ffa500}
+
+/* Disclaimer */
+.disclaimer{font-size:11px;color:#444;line-height:1.5;margin-top:12px;padding-top:12px;border-top:1px solid #1a1a1a}
+
+/* Share Bar */
+.share-bar{display:flex;justify-content:center;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid #1a1a1a}
+.share-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:1px solid #333;background:#161616;cursor:pointer;transition:all 0.2s;color:#888;font-size:14px;text-decoration:none}
+.share-btn:hover{border-color:#00d4aa;color:#00d4aa;background:rgba(0,212,170,0.05)}
+.share-btn svg{width:16px;height:16px;fill:currentColor}
+.watermark{text-align:center;margin-top:16px;font-size:11px;color:#333;font-family:'JetBrains Mono',monospace}
+
+@media(max-width:768px){
+  .party-vs{flex-direction:column;gap:12px}
+  .party-block{min-width:100%}
+  .vs-circle{width:32px;height:32px;font-size:12px}
+  .stat-row{grid-template-columns:1fr}
+  .chart-wrap{height:300px}
+  .pres-grid{grid-template-columns:1fr}
+  .stat-val .num{font-size:18px}
+  .party-block .big-num{font-size:24px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>⚖️ 정당별 국가채무 비교 대시보드</h1>
+    <div class="sub">
+      <span>더불어민주당 계열 vs 국민의힘 계열</span>
+      <span class="accent">1993 ~ 2025</span>
+      <span class="badge badge-blue">민주당 4명</span>
+      <span class="badge badge-red">국힘 4명</span>
+    </div>
+  </div>
+
+  <!-- Context Banner -->
+  <div class="context-banner">
+    <strong>⚠️ 해석 시 유의사항</strong><br>
+    국가채무 증가는 대통령 개인의 정책뿐 아니라 경제위기(IMF·글로벌 금융위기·코로나19), 공적자금 국채전환, GDP 성장률, 인구구조 변화, 국제 경기 등 다양한 외부 요인이 복합적으로 작용한 결과입니다. 단순 숫자 비교만으로 특정 정당의 재정운용 능력을 판단하기는 어렵습니다. 각 정권의 경제적 맥락을 함께 고려해 주세요.
+  </div>
+
+  <!-- Party VS Header -->
+  <div class="party-vs" id="partyVs"></div>
+
+  <!-- Stat Comparison Cards -->
+  <div class="stat-row" id="statRow"></div>
+
+  <!-- Bar Chart: Side by Side -->
+  <div class="chart-section">
+    <h2>대통령별 국가채무 증가액 (정당별 색상)</h2>
+    <div class="chart-sub">파란색: 민주당 계열 · 빨간색: 국힘 계열 · 점선: 각 정당 평균</div>
+    <div class="chart-wrap">
+      <canvas id="compareChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Radar / Multi-metric Chart -->
+  <div class="chart-section">
+    <h2>정당별 평균 비교 (다중 지표)</h2>
+    <div class="chart-sub">연평균 채무 증가(조원/년), GDP비율 변화(%p), 증가율(%)</div>
+    <div class="chart-wrap" style="height:340px;">
+      <canvas id="radarChart"></canvas>
+    </div>
+  </div>
+
+  <!-- GDP Ratio Change Chart -->
+  <div class="chart-section">
+    <h2>대통령별 GDP 대비 비율 변화 (%p)</h2>
+    <div class="chart-sub">임기 시작 → 종료 시 GDP 대비 국가채무 비율 변동폭</div>
+    <div class="chart-wrap" style="height:320px;">
+      <canvas id="gdpChangeChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Individual President Cards -->
+  <h2 style="font-size:15px;font-weight:600;color:#fff;margin-bottom:14px;">📋 대통령별 상세 카드</h2>
+  <div class="pres-grid" id="presGrid"></div>
+
+  <!-- Disclaimer -->
+  <div class="disclaimer">
+    <strong style="color:#666">데이터 출처 및 유의사항</strong><br>
+    • 국가채무(D1): 기획재정부 결산 기준, e-나라지표, 열린재정, 국회예산정책처<br>
+    • 정당 분류: 직접 소속 정당이 아닌 계보 기준 (민주자유당/한나라당/새누리당 → 국민의힘 계열, 새정치국민회의/열린우리당 → 더불어민주당 계열)<br>
+    • 대통령 임기는 회계연도 기준 근사치이며, 박근혜(4년)·윤석열(3년)은 탄핵으로 조기 종료<br>
+    • 이재명 정부(2025.6~)는 아직 진행 초기이므로 참고용 데이터<br>
+    • 이 대시보드는 공공 데이터를 시각화한 것으로, 특정 정치적 입장을 대변하지 않습니다
+  </div>
+
+  <!-- Share Bar -->
+  <div class="share-bar">
+    <a class="share-btn" id="shareX" title="X(트위터)" target="_blank">
+      <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+    </a>
+    <a class="share-btn" id="shareKakao" title="카카오톡" href="#">
+      <svg viewBox="0 0 24 24"><path d="M12 3C6.477 3 2 6.463 2 10.691c0 2.717 1.81 5.104 4.534 6.444l-.924 3.42c-.082.303.254.55.52.384l4.05-2.593c.592.082 1.2.126 1.82.126 5.523 0 10-3.463 10-7.691S17.523 3 12 3z"/></svg>
+    </a>
+    <a class="share-btn" id="shareTelegram" title="텔레그램" target="_blank">
+      <svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.492-1.302.48-.428-.013-1.252-.242-1.865-.44-.751-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+    </a>
+    <a class="share-btn" id="shareCopy" title="링크 복사" href="#">
+      <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+    </a>
+  </div>
+  <div class="watermark">Herdvibe.com</div>
+</div>
+
+<script>
+// ========================================
+// DATA
+// ========================================
+const BLUE = '#007AFF';
+const RED  = '#E74C3C';
+const BLUE_A = 'rgba(0,122,255,';
+const RED_A  = 'rgba(231,76,60,';
+
+const presidents = [
+  {
+    name:'김영삼', term:'1993–1998', party:'conservative', partyName:'민주자유당→신한국당',
+    startDebt:17.6, endDebt:60.3, startGdp:5.1, endGdp:11.9, years:5,
+    context:'IMF 외환위기(1997)', color: RED
+  },
+  {
+    name:'김대중', term:'1998–2003', party:'liberal', partyName:'새정치국민회의→민주당',
+    startDebt:60.3, endDebt:133.6, startGdp:11.9, endGdp:20.7, years:5,
+    context:'IMF 극복, 공적자금 투입', color: BLUE
+  },
+  {
+    name:'노무현', term:'2003–2008', party:'liberal', partyName:'열린우리당',
+    startDebt:133.6, endDebt:298.4, startGdp:20.7, endGdp:30.7, years:5,
+    context:'공적자금 국채전환', color: BLUE
+  },
+  {
+    name:'이명박', term:'2008–2013', party:'conservative', partyName:'한나라당→새누리당',
+    startDebt:298.4, endDebt:443.1, startGdp:30.7, endGdp:34.8, years:5,
+    context:'글로벌 금융위기(2008)', color: RED
+  },
+  {
+    name:'박근혜', term:'2013–2017', party:'conservative', partyName:'새누리당',
+    startDebt:443.1, endDebt:626.9, startGdp:34.8, endGdp:38.3, years:4,
+    context:'탄핵 조기종료', color: RED
+  },
+  {
+    name:'문재인', term:'2017–2022', party:'liberal', partyName:'더불어민주당',
+    startDebt:626.9, endDebt:970.7, startGdp:38.3, endGdp:46.7, years:5,
+    context:'코로나19 재난지원', color: BLUE
+  },
+  {
+    name:'윤석열', term:'2022–2025', party:'conservative', partyName:'국민의힘',
+    startDebt:970.7, endDebt:1175.2, startGdp:46.7, endGdp:46.1, years:3,
+    context:'탄핵 조기종료', color: RED
+  },
+  {
+    name:'이재명', term:'2025–', party:'liberal', partyName:'더불어민주당',
+    startDebt:1175.2, endDebt:1214.3, startGdp:46.1, endGdp:47.2, years:0.5,
+    context:'현재 진행 중(추정)', color: BLUE
+  },
+];
+
+const liberals = presidents.filter(p => p.party === 'liberal');
+const conservatives = presidents.filter(p => p.party === 'conservative');
+
+function avg(arr) { return arr.reduce((a,b) => a+b, 0) / arr.length; }
+function getIncrease(p) { return p.endDebt - p.startDebt; }
+function getAnnual(p) { return getIncrease(p) / (p.years || 1); }
+function getPctIncrease(p) { return (getIncrease(p) / p.startDebt) * 100; }
+function getGdpChange(p) { return p.endGdp - p.startGdp; }
+
+// Party averages
+const libAvg = {
+  increase: avg(liberals.map(getIncrease)),
+  annual: avg(liberals.map(getAnnual)),
+  pctIncrease: avg(liberals.map(getPctIncrease)),
+  gdpChange: avg(liberals.map(getGdpChange)),
+};
+const conAvg = {
+  increase: avg(conservatives.map(getIncrease)),
+  annual: avg(conservatives.map(getAnnual)),
+  pctIncrease: avg(conservatives.map(getPctIncrease)),
+  gdpChange: avg(conservatives.map(getGdpChange)),
+};
+
+// ========================================
+// Watermark Plugin
+// ========================================
+const watermarkPlugin = {
+  id:'watermark',
+  afterDraw(chart){
+    const{ctx,chartArea}=chart;
+    ctx.save();
+    ctx.font='12px JetBrains Mono';
+    ctx.fillStyle='rgba(255,255,255,0.06)';
+    ctx.textAlign='center';
+    ctx.fillText('Herdvibe.com',(chartArea.left+chartArea.right)/2,(chartArea.top+chartArea.bottom)/2);
+    ctx.restore();
+  }
+};
+
+// ========================================
+// Party VS Header
+// ========================================
+function renderPartyVs() {
+  const el = document.getElementById('partyVs');
+  el.innerHTML = `
+    <div class="party-block" style="border-color:${BLUE_A}0.2)">
+      <h3 style="color:${BLUE}">더불어민주당 계열</h3>
+      <div class="members">${liberals.map(p=>p.name).join(' · ')}</div>
+      <div class="big-num" style="color:${BLUE}">평균 +${libAvg.increase.toFixed(1)}조</div>
+      <div class="big-label">임기 평균 채무 증가액</div>
+    </div>
+    <div class="vs-circle">VS</div>
+    <div class="party-block" style="border-color:${RED_A}0.2)">
+      <h3 style="color:${RED}">국민의힘 계열</h3>
+      <div class="members">${conservatives.map(p=>p.name).join(' · ')}</div>
+      <div class="big-num" style="color:${RED}">평균 +${conAvg.increase.toFixed(1)}조</div>
+      <div class="big-label">임기 평균 채무 증가액</div>
+    </div>
+  `;
+}
+
+// ========================================
+// Stat Cards
+// ========================================
+function renderStatCards() {
+  const el = document.getElementById('statRow');
+  const metrics = [
+    { title: '연평균 채무 증가 (조원/년)', libVal: libAvg.annual.toFixed(1)+'조', conVal: conAvg.annual.toFixed(1)+'조' },
+    { title: '평균 증가율 (%)', libVal: libAvg.pctIncrease.toFixed(1)+'%', conVal: conAvg.pctIncrease.toFixed(1)+'%' },
+    { title: 'GDP비율 평균 변화 (%p)', libVal: (libAvg.gdpChange>=0?'+':'')+libAvg.gdpChange.toFixed(1)+'%p', conVal: (conAvg.gdpChange>=0?'+':'')+conAvg.gdpChange.toFixed(1)+'%p' },
+    { title: '총 누적 증가액 (조원)', libVal: liberals.map(getIncrease).reduce((a,b)=>a+b,0).toFixed(1)+'조', conVal: conservatives.map(getIncrease).reduce((a,b)=>a+b,0).toFixed(1)+'조' },
+  ];
+
+  metrics.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    card.innerHTML = `
+      <div class="stat-title">${m.title}</div>
+      <div class="stat-pair">
+        <div class="stat-val">
+          <div class="num" style="color:${BLUE}">${m.libVal}</div>
+          <div class="lbl">민주당 계열</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-val">
+          <div class="num" style="color:${RED}">${m.conVal}</div>
+          <div class="lbl">국힘 계열</div>
+        </div>
+      </div>
+    `;
+    el.appendChild(card);
+  });
+}
+
+// ========================================
+// Compare Bar Chart
+// ========================================
+function renderCompareChart() {
+  const labels = presidents.map(p => p.name);
+  const increases = presidents.map(getIncrease);
+  const colors = presidents.map(p => p.party === 'liberal' ? BLUE+'CC' : RED+'CC');
+  const borderColors = presidents.map(p => p.party === 'liberal' ? BLUE : RED);
+
+  const ctx = document.getElementById('compareChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '국가채무 증가액(조원)',
+        data: increases,
+        backgroundColor: colors,
+        borderColor: borderColors,
+        borderWidth: 1,
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        annotation: {
+          annotations: {
+            libLine: {
+              type: 'line',
+              yMin: libAvg.increase,
+              yMax: libAvg.increase,
+              borderColor: BLUE+'88',
+              borderWidth: 2,
+              borderDash: [6,4],
+              label: {
+                display: true,
+                content: '민주 평균 ' + libAvg.increase.toFixed(0) + '조',
+                position: 'start',
+                backgroundColor: BLUE+'22',
+                color: BLUE,
+                font: { size: 10, family: 'JetBrains Mono' },
+                padding: 4,
+              }
+            },
+            conLine: {
+              type: 'line',
+              yMin: conAvg.increase,
+              yMax: conAvg.increase,
+              borderColor: RED+'88',
+              borderWidth: 2,
+              borderDash: [6,4],
+              label: {
+                display: true,
+                content: '국힘 평균 ' + conAvg.increase.toFixed(0) + '조',
+                position: 'end',
+                backgroundColor: RED+'22',
+                color: RED,
+                font: { size: 10, family: 'JetBrains Mono' },
+                padding: 4,
+              }
+            }
+          }
+        },
+        tooltip: {
+          backgroundColor:'#1a1a1a',borderColor:'#333',borderWidth:1,
+          titleColor:'#fff',bodyColor:'#ccc',
+          titleFont:{family:'Noto Sans KR',weight:'600'},
+          bodyFont:{family:'JetBrains Mono',size:12},
+          callbacks: {
+            afterBody: items => {
+              const idx = items[0].dataIndex;
+              const p = presidents[idx];
+              return [
+                '연평균: ' + getAnnual(p).toFixed(1) + '조/년',
+                'GDP비율: ' + p.startGdp + '% → ' + p.endGdp + '%',
+                '맥락: ' + p.context
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid:{color:'#1a1a1a'},
+          ticks:{
+            color:'#aaa',
+            font:{family:'Noto Sans KR',size:12,weight:'600'},
+            callback: function(value) {
+              const p = presidents[value];
+              return p.name;
+            }
+          }
+        },
+        y: {
+          grid:{color:'#1a1a1a'},
+          ticks:{color:'#555',font:{family:'JetBrains Mono',size:10},callback:v=>v+'조'},
+          title:{display:true,text:'채무 증가액(조원)',color:'#555',font:{size:11}}
+        }
+      }
+    },
+    plugins: [watermarkPlugin]
+  });
+}
+
+// ========================================
+// Radar Chart (normalized)
+// ========================================
+function renderRadarChart() {
+  const ctx = document.getElementById('radarChart').getContext('2d');
+
+  const labels = ['연평균 증가\n(조원/년)', 'GDP비율 변화\n(%p)', '평균 증가율\n(%)', '총 누적 증가\n(조원)'];
+  const libData = [
+    libAvg.annual,
+    Math.abs(libAvg.gdpChange),
+    libAvg.pctIncrease,
+    liberals.map(getIncrease).reduce((a,b)=>a+b,0) / 100,
+  ];
+  const conData = [
+    conAvg.annual,
+    Math.abs(conAvg.gdpChange),
+    conAvg.pctIncrease,
+    conservatives.map(getIncrease).reduce((a,b)=>a+b,0) / 100,
+  ];
+
+  new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: '민주당 계열',
+          data: libData,
+          borderColor: BLUE,
+          backgroundColor: BLUE_A + '0.12)',
+          borderWidth: 2,
+          pointBackgroundColor: BLUE,
+          pointBorderColor: '#0a0a0a',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+        },
+        {
+          label: '국힘 계열',
+          data: conData,
+          borderColor: RED,
+          backgroundColor: RED_A + '0.12)',
+          borderWidth: 2,
+          pointBackgroundColor: RED,
+          pointBorderColor: '#0a0a0a',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels:{color:'#888',font:{family:'Noto Sans KR',size:12},boxWidth:12,padding:16}
+        },
+        tooltip: {
+          backgroundColor:'#1a1a1a',borderColor:'#333',borderWidth:1,
+          titleColor:'#fff',bodyColor:'#ccc',
+          titleFont:{family:'Noto Sans KR'},bodyFont:{family:'JetBrains Mono',size:12},
+        }
+      },
+      scales: {
+        r: {
+          grid: { color: '#222' },
+          angleLines: { color: '#222' },
+          pointLabels: { color: '#888', font: { family: 'Noto Sans KR', size: 11 } },
+          ticks: { display: false },
+          suggestedMin: 0,
+        }
+      }
+    },
+    plugins: [watermarkPlugin]
+  });
+}
+
+// ========================================
+// GDP Ratio Change Chart
+// ========================================
+function renderGdpChangeChart() {
+  const labels = presidents.map(p => p.name);
+  const changes = presidents.map(getGdpChange);
+  const colors = presidents.map(p => p.party === 'liberal' ? BLUE+'CC' : RED+'CC');
+  const borderColors = presidents.map(p => p.party === 'liberal' ? BLUE : RED);
+
+  const ctx = document.getElementById('gdpChangeChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'GDP비율 변화(%p)',
+        data: changes,
+        backgroundColor: colors,
+        borderColor: borderColors,
+        borderWidth: 1,
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor:'#1a1a1a',borderColor:'#333',borderWidth:1,
+          titleColor:'#fff',bodyColor:'#ccc',
+          titleFont:{family:'Noto Sans KR',weight:'600'},
+          bodyFont:{family:'JetBrains Mono',size:12},
+          callbacks: {
+            label: item => {
+              const v = item.raw;
+              return ' GDP비율: ' + (v>=0?'+':'') + v.toFixed(1) + '%p';
+            },
+            afterBody: items => {
+              const p = presidents[items[0].dataIndex];
+              return [p.startGdp + '% → ' + p.endGdp + '%', p.context];
+            }
+          }
+        },
+        annotation: {
+          annotations: {
+            zeroLine: {
+              type: 'line',
+              yMin: 0, yMax: 0,
+              borderColor: '#444',
+              borderWidth: 1,
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid:{color:'#1a1a1a'},
+          ticks:{color:'#aaa',font:{family:'Noto Sans KR',size:12,weight:'600'}},
+        },
+        y: {
+          grid:{color:'#1a1a1a'},
+          ticks:{color:'#555',font:{family:'JetBrains Mono',size:10},callback:v=>(v>=0?'+':'')+v+'%p'},
+          title:{display:true,text:'GDP 대비 비율 변화(%p)',color:'#555',font:{size:11}}
+        }
+      }
+    },
+    plugins: [watermarkPlugin]
+  });
+}
+
+// ========================================
+// President Cards
+// ========================================
+function renderPresCards() {
+  const grid = document.getElementById('presGrid');
+  presidents.forEach(p => {
+    const inc = getIncrease(p);
+    const ann = getAnnual(p);
+    const pct = getPctIncrease(p);
+    const gdpC = getGdpChange(p);
+    const isLib = p.party === 'liberal';
+    const card = document.createElement('div');
+    card.className = 'pres-card';
+    card.style.borderLeftColor = p.color;
+    card.style.borderLeftWidth = '3px';
+    card.innerHTML = `
+      <div class="pres-top">
+        <span class="pres-name">${p.name}</span>
+        <span class="pres-party" style="background:${isLib?BLUE_A:RED_A}0.15);color:${p.color}">${isLib?'민주당':'국힘'} 계열</span>
+        <span class="pres-term">${p.term}</span>
+      </div>
+      <div style="font-size:11px;color:#666;margin-bottom:6px">${p.partyName}</div>
+      <span class="context-tag">📌 ${p.context}</span>
+      <div class="pres-metrics">
+        <div class="pres-metric">
+          <div class="mv" style="color:${p.color}">+${inc.toFixed(1)}조</div>
+          <div class="ml">총 증가액</div>
+        </div>
+        <div class="pres-metric">
+          <div class="mv" style="color:#ffa500">${ann.toFixed(1)}조</div>
+          <div class="ml">연평균/년</div>
+        </div>
+        <div class="pres-metric">
+          <div class="mv" style="color:${gdpC>=0?'#ff4d4d':'#00d4aa'}">${gdpC>=0?'▲':'▼'}${Math.abs(gdpC).toFixed(1)}%p</div>
+          <div class="ml">GDP비율 변화</div>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ========================================
+// Share Bar
+// ========================================
+function initShareBar() {
+  const url = encodeURIComponent(window.location.href);
+  const title = encodeURIComponent('정당별 국가채무 비교 대시보드 | HerdVibe');
+  document.getElementById('shareX').href = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
+  document.getElementById('shareTelegram').href = `https://t.me/share/url?url=${url}&text=${title}`;
+  document.getElementById('shareKakao').addEventListener('click', e => {
+    e.preventDefault();
+    if(window.Kakao&&Kakao.isInitialized()){
+      Kakao.Share.sendDefault({objectType:'feed',content:{title:'정당별 국가채무 비교',description:'민주당 vs 국힘 계열 대통령 국가채무 비교',imageUrl:'',link:{mobileWebUrl:window.location.href,webUrl:window.location.href}}});
+    } else {
+      window.open(`https://story.kakao.com/share?url=${url}`,'_blank');
+    }
+  });
+  document.getElementById('shareCopy').addEventListener('click', e => {
+    e.preventDefault();
+    navigator.clipboard.writeText(window.location.href).then(()=>{
+      const btn=e.currentTarget;btn.style.borderColor='#00d4aa';btn.style.color='#00d4aa';
+      setTimeout(()=>{btn.style.borderColor='#333';btn.style.color='#888'},1500);
+    }).catch(()=>{
+      const ta=document.createElement('textarea');ta.value=window.location.href;
+      document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    });
+  });
+}
+
+// Kakao SDK
+function initKakao(){
+  const s=document.createElement('script');
+  s.src='https://t1.kakaocdn.net/kakao_js_sdk/2.6.0/kakao.min.js';
+  s.onload=()=>{if(window.Kakao&&!Kakao.isInitialized())Kakao.init('a43ed7b39fac35458f4f9df925a279b5')};
+  document.head.appendChild(s);
+}
+
+// iframe height
+function initIframeHeight(){
+  let lastH=0;
+  const ro=new ResizeObserver(()=>{
+    const h=document.documentElement.scrollHeight;
+    if(Math.abs(h-lastH)>5){lastH=h;window.parent.postMessage({type:'herdvibe-height',height:h},'*')}
+  });
+  ro.observe(document.documentElement);
+}
+
+// ========================================
+// INIT
+// ========================================
+document.addEventListener('DOMContentLoaded', () => {
+  renderPartyVs();
+  renderStatCards();
+  renderCompareChart();
+  renderRadarChart();
+  renderGdpChangeChart();
+  renderPresCards();
+  initShareBar();
+  initKakao();
+  initIframeHeight();
+});
+</script>
+</body>
+</html>
