@@ -140,10 +140,10 @@ body {
 .chart-wrap {
   position: relative;
   width: 100%;
-  height: 420px;
+  height: 480px;
 }
 @media (max-width: 768px) {
-  .chart-wrap { height: 320px; }
+  .chart-wrap { height: 380px; }
   .summary-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -531,24 +531,31 @@ function renderMainChart() {
 
   // Annotation boxes for president terms
   const annotations = {};
+  const maxDebt = Math.max(...debts);
   presidents.forEach((p, i) => {
     const startIdx = labels.indexOf(p.startYear);
     const endIdx = labels.indexOf(p.endYear);
     if (startIdx === -1) return;
+    const endI = endIdx !== -1 ? endIdx : labels.length - 1;
     annotations['box' + i] = {
       type: 'box',
       xMin: startIdx - 0.5,
-      xMax: (endIdx !== -1 ? endIdx : labels.length - 1) + 0.5,
+      xMax: endI + 0.5,
       backgroundColor: p.colorAlpha,
       borderWidth: 0,
     };
     annotations['label' + i] = {
       type: 'label',
-      xValue: startIdx + (((endIdx !== -1 ? endIdx : labels.length - 1) - startIdx) / 2),
-      yValue: Math.max(...debts) * 0.95,
+      xValue: startIdx + ((endI - startIdx) / 2),
+      yValue: maxDebt,
+      yAdjust: -30,
+      position: { y: 'start' },
       content: p.name,
-      font: { size: 11, family: 'Noto Sans KR', weight: '600' },
-      color: p.color + 'AA',
+      font: { size: 14, family: 'Noto Sans KR', weight: '700' },
+      color: p.color,
+      backgroundColor: '#0a0a0aCC',
+      padding: { top: 3, bottom: 3, left: 8, right: 8 },
+      borderRadius: 4,
     };
   });
 
@@ -588,6 +595,7 @@ function renderMainChart() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: { padding: { top: 40 } },
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
