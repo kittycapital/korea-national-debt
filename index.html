@@ -403,6 +403,10 @@ const yearlyData = [
   { year: 2023, debt: 1126.7, gdpRatio: 50.4 },
   { year: 2024, debt: 1175.2, gdpRatio: 46.1 },
   { year: 2025, debt: 1214.3, gdpRatio: 47.2 },
+  { year: 2026, debt: null, gdpRatio: null },
+  { year: 2027, debt: null, gdpRatio: null },
+  { year: 2028, debt: null, gdpRatio: null },
+  { year: 2029, debt: null, gdpRatio: null },
 ];
 
 // Presidential terms (using fiscal year approximation)
@@ -457,7 +461,7 @@ const presidents = [
     years: 3, note: '탄핵·조기종료'
   },
   {
-    name: '이재명', term: '2025–', startYear: 2025, endYear: 2025,
+    name: '이재명', term: '2025–', startYear: 2025, endYear: 2029,
     color: '#00d4aa', colorAlpha: 'rgba(0,212,170,0.08)',
     startDebt: 1175.2, endDebt: 1214.3,
     startGdp: 46.1, endGdp: 47.2,
@@ -531,7 +535,7 @@ function renderMainChart() {
 
   // Annotation boxes for president terms
   const annotations = {};
-  const maxDebt = Math.max(...debts);
+  const maxDebt = Math.max(...debts.filter(v => v !== null));
   presidents.forEach((p, i) => {
     const startIdx = labels.indexOf(p.startYear);
     const endIdx = labels.indexOf(p.endYear);
@@ -582,6 +586,7 @@ function renderMainChart() {
           backgroundColor: 'rgba(0,212,170,0.1)',
           fill: true,
           tension: 0.3,
+          spanGaps: false,
           pointRadius: 3,
           pointBackgroundColor: '#00d4aa',
           pointBorderColor: '#0a0a0a',
