@@ -31,6 +31,7 @@ body {
   margin-bottom: 28px;
   border-bottom: 1px solid #222;
   padding-bottom: 20px;
+  text-align: center;
 }
 .header h1 {
   font-size: 22px;
@@ -46,6 +47,7 @@ body {
   gap: 12px;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
 }
 .header .sub .accent {
   color: #00d4aa;
@@ -127,11 +129,13 @@ body {
   font-weight: 600;
   color: #fff;
   margin-bottom: 4px;
+  text-align: center;
 }
 .chart-section .chart-sub {
   font-size: 11px;
   color: #555;
   margin-bottom: 16px;
+  text-align: center;
 }
 .chart-wrap {
   position: relative;
@@ -157,6 +161,7 @@ body {
   font-weight: 600;
   color: #fff;
   margin-bottom: 14px;
+  text-align: center;
 }
 table {
   width: 100%;
@@ -195,6 +200,7 @@ tbody tr:hover {
   gap: 16px;
   flex-wrap: wrap;
   margin-bottom: 12px;
+  justify-content: center;
 }
 .legend-item {
   display: flex;
@@ -768,7 +774,8 @@ function renderDetailTable() {
 // Share bar logic
 // ========================================
 function initShareBar() {
-  const url = encodeURIComponent(window.location.href);
+  const SHARE_URL = 'https://herdvibe.com/132';
+  const url = encodeURIComponent(SHARE_URL);
   const title = encodeURIComponent('한국 국가채무 정권별 대시보드 | HerdVibe');
 
   document.getElementById('shareX').href = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
@@ -783,7 +790,7 @@ function initShareBar() {
           title: '한국 국가채무 정권별 대시보드',
           description: '김영삼~이재명 정권별 국가채무 추이, GDP 대비 비율, 증가액 비교',
           imageUrl: '',
-          link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
+          link: { mobileWebUrl: SHARE_URL, webUrl: SHARE_URL },
         },
       });
     } else {
@@ -801,7 +808,7 @@ function initShareBar() {
 
   document.getElementById('shareCopy').addEventListener('click', (e) => {
     e.preventDefault();
-    navigator.clipboard.writeText(window.location.href).then(() => {
+    navigator.clipboard.writeText(SHARE_URL).then(() => {
       const btn = e.currentTarget;
       btn.style.borderColor = '#00d4aa';
       btn.style.color = '#00d4aa';
@@ -812,7 +819,7 @@ function initShareBar() {
     }).catch(() => {
       // fallback
       const ta = document.createElement('textarea');
-      ta.value = window.location.href;
+      ta.value = SHARE_URL;
       document.body.appendChild(ta);
       ta.select();
       document.execCommand('copy');
