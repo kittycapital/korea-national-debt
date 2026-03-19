@@ -777,9 +777,12 @@ function initShareBar() {
   const SHARE_URL = 'https://herdvibe.com/132';
   const url = encodeURIComponent(SHARE_URL);
   const title = encodeURIComponent('한국 국가채무 정권별 대시보드 | HerdVibe');
+  const topWin = window.top || window.parent || window;
 
-  document.getElementById('shareX').href = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
-  document.getElementById('shareX').target = '_blank';
+  document.getElementById('shareX').addEventListener('click', (e) => {
+    e.preventDefault();
+    topWin.open(`https://twitter.com/intent/tweet?url=${url}&text=${title}`, '_blank');
+  });
 
   document.getElementById('shareKakao').addEventListener('click', (e) => {
     e.preventDefault();
@@ -794,12 +797,14 @@ function initShareBar() {
         },
       });
     } else {
-      window.open(`https://story.kakao.com/share?url=${url}`, '_blank');
+      topWin.open(`https://story.kakao.com/share?url=${url}`, '_blank');
     }
   });
 
-  document.getElementById('shareTelegram').href = `https://t.me/share/url?url=${url}&text=${title}`;
-  document.getElementById('shareTelegram').target = '_blank';
+  document.getElementById('shareTelegram').addEventListener('click', (e) => {
+    e.preventDefault();
+    topWin.open(`https://t.me/share/url?url=${url}&text=${title}`, '_blank');
+  });
 
   document.getElementById('shareInstagram').addEventListener('click', (e) => {
     e.preventDefault();
@@ -808,23 +813,34 @@ function initShareBar() {
 
   document.getElementById('shareCopy').addEventListener('click', (e) => {
     e.preventDefault();
-    navigator.clipboard.writeText(SHARE_URL).then(() => {
-      const btn = e.currentTarget;
+    const btn = e.currentTarget;
+    const onSuccess = () => {
       btn.style.borderColor = '#00d4aa';
       btn.style.color = '#00d4aa';
-      setTimeout(() => {
-        btn.style.borderColor = '#333';
-        btn.style.color = '#888';
-      }, 1500);
-    }).catch(() => {
-      // fallback
-      const ta = document.createElement('textarea');
-      ta.value = SHARE_URL;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    });
+      setTimeout(() => { btn.style.borderColor = '#333'; btn.style.color = '#888'; }, 1500);
+    };
+    // 방법1: Clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(SHARE_URL).then(onSuccess).catch(fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+    function fallbackCopy() {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = SHARE_URL;
+        ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        onSuccess();
+      } catch(err) {
+        // 방법3: prompt로 수동 복사 유도
+        prompt('아래 링크를 복사하세요:', SHARE_URL);
+      }
+    }
   });
 }
 
